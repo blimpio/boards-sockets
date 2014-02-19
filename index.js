@@ -30,12 +30,17 @@ io.configure(function() {
       return callback(null, false);
     }
 
+    /* get the current users channels */
     user.getChannels(payload.user_id)
       .then(function(channels) {
         userChannels = channels;
+        console.info('-> userChannels', userChannels);
+        return callback(null, true);
+      })
+      .catch(function(error) {
+        console.error('-> error getting channels', error);
+        return callback(null, false);
       });
-
-    callback(null, true);
   });
 });
 

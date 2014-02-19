@@ -3,7 +3,7 @@
 var DatabaseBackend = require('./Backend'),
     pg = require('pg'),
     sql = require('squel'),
-    Q = require('q');
+    RSVP = require('rsvp');
 
 /* constructor */
 var PgBackend = function(connectUrl) {
@@ -19,51 +19,65 @@ PgBackend.prototype.sql = sql;
 
 /* connect */
 PgBackend.prototype.connect = function() {
-  var deferred = Q.defer();
+  var self = this;
+  var promise = new RSVP.Promise(function(resolve, reject) {
 
-  pg.connect(this.connectUrl, function(error, client, done) {
-    if (error) {
-      deferred.reject(new Error(error));
-    }
+    pg.connect(self.connectUrl, function(error, client, done) {
+      if (error) {
+        reject(error);
+      } else {
+        resolve({client: client, done: done});
+      }
+    });
 
-    deferred.resolve({client: client, done: done});
   });
 
-  return deferred.promise;
+  return promise;
 };
 
 /* get */
 PgBackend.prototype.get = function(tableName, id) {
-  var deferred = Q.defer();
+  var self = this;
+  var promise = new RSVP.Promise(function(resolve, reject) {
 
-  var query = this.sql.select().from(tableName).where('id = ?', id).toString();
-  this.query(query)
-    .then(function(result) {
-      deferred.resolve(result.rows[0]);
-    }, function(error) {
-      deferred.reject(new Error(error));
-    });
+    var query = sql.select()
+                   .from(tableName)
+                   .where('id = ?', id).toString();
 
-  return deferred.promise;
+    self.query(query)
+      .then(function(result) {
+        resolve(result.rows[0]);
+      }, function(error) {
+        reject(error);
+      });
+
+  });
+
+  return promise;
 };
 
 /* query */
 PgBackend.prototype.query = function(query) {
-  var deferred = Q.defer();
+  var self = this;
+  var promise = new RSVP.Promise(function(resolve, reject) {
 
-  this.connect()
-    .then(function(connection){
-      connection.client.query(query, function(error, result) {
-        if (error) {
-          deferred.reject(new Error(error));
-        }
-
-        connection.done();
-        deferred.resolve(result);
+    self.connect()
+      .then(function(connection){
+        connection.client.query(query, function(error, result) {
+          if (error) {
+            reject(error);
+          } else {
+            connection.done();
+            resolve(result);
+          }
+        });
+      }, function(error) {
+        reject(error);
       });
-    });
 
-  return deferred.promise;
+  });
+
+  return promise;
 };
 
 
