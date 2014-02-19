@@ -1,0 +1,4 @@
+{
+    "dbUrl": "postgres://gcollazo:@localhost/blimp-backend",
+    "secretKey": "bb!onz3e2hc1l-192ug40g@ykf^3@e4rtl!t9(i)d7n#oeo^!r"
+}

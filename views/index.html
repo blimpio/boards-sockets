@@ -1,0 +1,38 @@
+<html>
+    <body>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+
+          var token = 'eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJ0b2tlbl92ZXJzaW9uIjogIjU1MGU4NDAwLWUyOWItNDFkNC1hNzE2LTQ0NjY1NTQ0MDAwMCIsICJ1c2VyX2lkIjogMSwgImV4cCI6IDEzOTk5MTgzMjZ9.QQU-vqjxxNVRaI9VcHv2Ntec5c_WEbXm_j-zy5P1h10';
+
+          socket = io.connect('http://localhost', {query: 'jwt=' + token});
+
+          socket.on('error', function(reason) {
+            console.error('unable to connect websocket server:', reason);
+          });
+
+          socket.on('connect', function() {
+            console.info('successfully established a working connection');
+
+            var userRooms = ['u1', 'b1', 'a1', 'a2'];
+
+            userRooms.forEach(function(room) {
+              socket.emit('subscribe', room);
+            });
+          });
+
+          socket.on('roomauthfail', function(data) {
+            console.error('roomauthfail:', data.room, data.message);
+          });
+
+          socket.on('message', function(data) {
+            console.log('message:', data);
+          });
+
+          // socket.on('u1', function (data) {
+          //   console.log(data);
+          //   socket.emit('my other event', { my: 'data' });
+          // });
+        </script>
+    </body>
+</html>
