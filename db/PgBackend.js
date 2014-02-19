@@ -5,17 +5,25 @@ var DatabaseBackend = require('./Backend'),
     sql = require('squel'),
     RSVP = require('rsvp');
 
+/* Catch all pg errors */
+pg.on('error', function(error) {
+  console.error('PgBackend postgres error:', error);
+});
+
 /* constructor */
 var PgBackend = function(connectUrl) {
   this.connectUrl = connectUrl;
   this.sql.useFlavour('postgres');
 };
 
+
 /* Implement DatabaseBackend interface */
 PgBackend.prototype = Object.create(DatabaseBackend);
 
+
 /* Hook squel to backend */
 PgBackend.prototype.sql = sql;
+
 
 /* connect */
 PgBackend.prototype.connect = function() {
@@ -34,6 +42,32 @@ PgBackend.prototype.connect = function() {
 
   return promise;
 };
+
+
+/* query */
+PgBackend.prototype.query = function(query) {
+  var self = this;
+  var promise = new RSVP.Promise(function(resolve, reject) {
+
+    self.connect()
+      .then(function(connection){
+        connection.client.query(query, function(error, result) {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+            connection.done();
+          }
+        });
+      }, function(error) {
+        reject(error);
+      });
+
+  });
+
+  return promise;
+};
+
 
 /* get */
 PgBackend.prototype.get = function(tableName, id) {
@@ -55,31 +89,6 @@ PgBackend.prototype.get = function(tableName, id) {
 
   return promise;
 };
-
-/* query */
-PgBackend.prototype.query = function(query) {
-  var self = this;
-  var promise = new RSVP.Promise(function(resolve, reject) {
-
-    self.connect()
-      .then(function(connection){
-        connection.client.query(query, function(error, result) {
-          if (error) {
-            reject(error);
-          } else {
-            connection.done();
-            resolve(result);
-          }
-        });
-      }, function(error) {
-        reject(error);
-      });
-
-  });
-
-  return promise;
-};
-
 
 /* Sample Usage */
 // var db = new PgBackend('postgres://gcollazo:@localhost/blimp-backend');
