@@ -27,7 +27,7 @@ io.configure(function() {
       payload = jwt.decode(token, config.secretKey);
     } catch (exception) {
       console.error(exception);
-      return callback(null, false);
+      callback(null, false);
     }
 
     /* get the current users channels */
@@ -35,11 +35,11 @@ io.configure(function() {
       .then(function(channels) {
         userChannels = channels;
         console.info('-> userChannels', userChannels);
-        return callback(null, true);
+        callback(null, true);
       })
       .catch(function(error) {
         console.error('-> error getting channels', error);
-        return callback(null, false);
+        callback(null, false);
       });
   });
 });
