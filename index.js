@@ -56,7 +56,8 @@ io.sockets.on('connection', function(socket) {
       socket.in(room).emit('message', 'joined room: ' + room);
 
     } else {
-      socket.emit('roomauthfail', {room: room, message:'user can\'t join room'});
+      socket.emit('roomauthfail',
+                  {room: room, message:'user can\'t join room'});
     }
   });
 
