@@ -91,15 +91,10 @@ io.sockets.on('connection', function(socket) {
       console.error(error);
     }
 
-    console.log('*** -- Message -- ****');
     var room = channelPrefix + msg.sender_id;
 
     if (msg) {
-      console.log('channel:', room);
-      console.log('sender_id', msg.sender_id);
-      console.log('data_type', msg.data_type);
-      console.log('method', msg.method);
-      console.log('data', msg.data);
+      console.log('channel:', room, msg);
 
       /* Send paylod to client */
       var eventName = channel + 'Message';
