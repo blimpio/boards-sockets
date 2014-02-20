@@ -14,6 +14,11 @@ app.get('/', function(req, res) {
   res.sendfile(__dirname + '/views/index.html');
 });
 
+/* Serve html page with express */
+app.get('/2', function(req, res) {
+  res.sendfile(__dirname + '/views/index2.html');
+});
+
 
 /* Socket.io config for auth */
 io.configure(function() {
@@ -59,7 +64,14 @@ io.sockets.on('connection', function(socket) {
       socket.emit('roomauthfail',
                   {room: room, message:'user can\'t join room'});
     }
+
   });
+
+  setTimeout(function(){
+    userChannels.forEach(function(room) {
+      io.sockets.in(room).emit('message', {room:room, data:{action:'create', type:'board'}});
+    });
+  }, 1000);
 
 });
 
