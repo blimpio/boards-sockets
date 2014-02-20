@@ -17,6 +17,8 @@ This service will recieve messages from boards-backend via Redis Pub/Sub. We hav
 #### user channel
 On this channel we listed for all events related to users. The following is an example payload.
 
+`sender_id` = user_id
+
 ```
 {
 	"sender_id": 1,
@@ -28,6 +30,8 @@ On this channel we listed for all events related to users. The following is an e
 
 #### account channel
 On this channel we listen to events about `Account`, `Board`, `Stack`, `Card` and `Comment`. The following is an example payload.
+
+`sender_id` = account_id
 
 ```
 {
