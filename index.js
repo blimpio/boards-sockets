@@ -21,6 +21,7 @@ var redisPassword = process.env.REDIS_PASSWORD || undefined;
 wsPub.auth(redisPassword, function(error) { if (error) throw error; });
 wsSub.auth(redisPassword, function(error) { if (error) throw error; });
 wsClient.auth(redisPassword, function(error) { if (error) throw error; });
+backendSub.auth(redisPassword, function(error) { if (error) throw error; });
 
 
 /* Serve html page with express */
@@ -91,9 +92,8 @@ io.sockets.on('connection', function(socket) {
       console.error(error);
     }
 
-    var room = channelPrefix + msg.sender_id;
-
     if (msg) {
+      var room = channelPrefix + msg.sender_id;
       console.log('channel:', room, msg);
 
       /* Send paylod to client */
