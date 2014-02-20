@@ -1,6 +1,11 @@
 'use strict';
 
-var app = require('express')(),
+var RedisStore = require('socket.io/lib/stores/redis'),
+    redis = require('socket.io/node_modules/redis'),
+    pub = redis.createClient(),
+    sub = redis.createClient(),
+    client = redis.createClient(),
+    app = require('express')(),
     http = require('http'),
     server = http.createServer(app),
     io = require('socket.io').listen(server),
@@ -8,6 +13,14 @@ var app = require('express')(),
     config = require('./config'),
     User = require('./models/User'),
     userChannels;
+
+
+/* Redis auth */
+var redisPassword = process.env.REDIS_PASSWORD || undefined;
+pub.auth(redisPassword, function(error) { if (error) throw error; });
+sub.auth(redisPassword, function(error) { if (error) throw error; });
+client.auth(redisPassword, function(error) { if (error) throw error; });
+
 
 /* Serve html page with express */
 app.get('/', function(req, res) {
@@ -22,6 +35,15 @@ app.get('/2', function(req, res) {
 
 /* Socket.io config for auth */
 io.configure(function() {
+
+  /* Redis store config */
+  io.set('store', new RedisStore({
+    redisPub: pub,
+    redisSub: sub,
+    redisClient: client
+  }));
+
+  /* WebSocket Auth */
   io.set('authorization', function(handshakeData, callback) {
     var token = handshakeData.query.jwt,
         user = new User(),
@@ -76,4 +98,7 @@ io.sockets.on('connection', function(socket) {
 });
 
 
-server.listen(3000);
+var port = process.env.PORT || 3000;
+server.listen(port, function() {
+  console.log('Listening on port ' + port);
+});
