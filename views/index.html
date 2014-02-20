@@ -15,7 +15,7 @@
           socket.on('connect', function() {
             console.info('successfully established a working connection');
 
-            var userRooms = ['u1', 'b1', 'a1', 'a2'];
+            var userRooms = ['u1', 'a1'];
 
             userRooms.forEach(function(room) {
               socket.emit('subscribe', room);
@@ -26,8 +26,12 @@
             console.error('roomauthfail:', data.room, data.message);
           });
 
-          socket.on('message', function(data) {
-            console.log('message:', data);
+          socket.on('userMessage', function(data) {
+            console.log('userMessage:', data);
+          });
+
+          socket.on('accountMessage', function(data) {
+            console.log('accountMessage:', data);
           });
         </script>
     </body>

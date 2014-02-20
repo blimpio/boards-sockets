@@ -125,9 +125,9 @@ User.prototype.getChannels = function(id) {
   var self = this,
       channels = [];
 
-  var promise = new RSVP.Promise(function(resolve, reject) {
+  channels.push('u' + id);
 
-    channels.push('u' + id);
+  var promise = new RSVP.Promise(function(resolve, reject) {
 
     self.getBoards(id)
       .then(function(boards) {

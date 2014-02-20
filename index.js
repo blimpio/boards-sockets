@@ -2,9 +2,10 @@
 
 var RedisStore = require('socket.io/lib/stores/redis'),
     redis = require('socket.io/node_modules/redis'),
-    pub = redis.createClient(),
-    sub = redis.createClient(),
-    client = redis.createClient(),
+    wsPub = redis.createClient(),
+    wsSub = redis.createClient(),
+    wsClient = redis.createClient(),
+    backendSub = redis.createClient(),
     app = require('express')(),
     http = require('http'),
     server = http.createServer(app),
@@ -17,9 +18,9 @@ var RedisStore = require('socket.io/lib/stores/redis'),
 
 /* Redis auth */
 var redisPassword = process.env.REDIS_PASSWORD || undefined;
-pub.auth(redisPassword, function(error) { if (error) throw error; });
-sub.auth(redisPassword, function(error) { if (error) throw error; });
-client.auth(redisPassword, function(error) { if (error) throw error; });
+wsPub.auth(redisPassword, function(error) { if (error) throw error; });
+wsSub.auth(redisPassword, function(error) { if (error) throw error; });
+wsClient.auth(redisPassword, function(error) { if (error) throw error; });
 
 
 /* Serve html page with express */
@@ -38,9 +39,9 @@ io.configure(function() {
 
   /* Redis store config */
   io.set('store', new RedisStore({
-    redisPub: pub,
-    redisSub: sub,
-    redisClient: client
+    redisPub: wsPub,
+    redisSub: wsSub,
+    redisClient: wsClient
   }));
 
   /* WebSocket Auth */
@@ -71,7 +72,42 @@ io.configure(function() {
   });
 });
 
+
+/* Connection event listener */
 io.sockets.on('connection', function(socket) {
+
+  /* Backend redis messages */
+  backendSub.subscribe('user');
+  backendSub.subscribe('account');
+
+  backendSub.on('message', function(channel, message) {
+    var msg,
+        channelPrefix = channel.substring(0, 1);
+
+    try {
+      msg = JSON.parse(message);
+    } catch(error) {
+      msg = false;
+      console.error(error);
+    }
+
+    console.log('*** -- Message -- ****');
+    var room = channelPrefix + msg.sender_id;
+
+    if (msg) {
+      console.log('channel:', room);
+      console.log('sender_id', msg.sender_id);
+      console.log('data_type', msg.data_type);
+      console.log('method', msg.method);
+      console.log('data', msg.data);
+
+      /* Send paylod to client */
+      var eventName = channel + 'Message';
+      socket.in(room).emit(eventName, msg);
+    }
+
+  });
+
 
   /* Respond to subscribe message */
   socket.on('subscribe', function(room) {
@@ -89,15 +125,10 @@ io.sockets.on('connection', function(socket) {
 
   });
 
-  setTimeout(function(){
-    userChannels.forEach(function(room) {
-      io.sockets.in(room).emit('message', {room:room, data:{action:'create', type:'board'}});
-    });
-  }, 1000);
-
 });
 
 
+/* Start server */
 var port = process.env.PORT || 3000;
 server.listen(port, function() {
   console.log('Listening on port ' + port);
