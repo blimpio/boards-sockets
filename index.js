@@ -74,19 +74,19 @@ if (cluster.isMaster) {
   wsPub.on('error', function(error) {
     console.error('redis error:', error);
   }).on('connect', function() {
-    console.log('redis connected');
+    console.info('redis connected');
   });
 
   wsSub.on('error', function(error) {
     console.error('redis error:', error);
   }).on('connect', function() {
-    console.log('redis connected');
+    console.info('redis connected');
   });
 
   wsClient.on('error', function(error) {
     console.error('redis error:', error);
   }).on('connect', function() {
-    console.log('redis connected');
+    console.info('redis connected');
   });
 
 
@@ -174,7 +174,7 @@ if (cluster.isMaster) {
   /* Start server */
   var port = process.env.PORT || 3000;
   server.listen(port, function() {
-    console.log('Listening on port ' + port);
+    console.info('Listening on port ' + port);
   });
 
   process.on('SIGINT', function() {
