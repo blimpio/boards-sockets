@@ -3,8 +3,7 @@
 var Model = require('./model'),
     RSVP = require('rsvp'),
     PgBackend = require('../db/PgBackend'),
-    config = require('../config'),
-    db = new PgBackend(config.dbUrl);
+    db = new PgBackend(process.env.REDIS_URL || 'postgres://gcollazo:@localhost/boards');
 
 var User = function() {
   this.tableName = 'users_user';

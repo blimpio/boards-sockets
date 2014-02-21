@@ -1,100 +1,168 @@
 'use strict';
 
-var RedisStore = require('socket.io/lib/stores/redis'),
-    redis = require('socket.io/node_modules/redis'),
-    wsPub = redis.createClient(),
-    wsSub = redis.createClient(),
-    wsClient = redis.createClient(),
-    app = require('express')(),
-    http = require('http'),
-    server = http.createServer(app),
-    io = require('socket.io').listen(server),
-    jwt = require('jwt-simple'),
-    config = require('./config'),
-    User = require('./models/User'),
-    userChannels;
+var cluster = require('cluster');
+
+var numCPUs = require('os').cpus().length,
+    clusterStartTime = Date.now(),
+    newWorkerEnv = {};
+
+if (cluster.isMaster) {
+
+  // **************************************
+  // *** Master spawns worker processes ***
+  // **************************************
+
+  newWorkerEnv.clusterStartTime = clusterStartTime;
+
+  for (var i = 0; i < numCPUs; i++) {
+    console.log('Starting worker ' + i);
+    cluster.fork(newWorkerEnv);
+  }
+
+  cluster.on('exit', function(worker, code, signal) {
+    console.log('worker ' + worker.process.pid + ' died');
+    cluster.fork(newWorkerEnv);
+  });
+
+  cluster.on('online', function(worker) {
+    console.log('Worker ' + worker.process.pid + ' online');
+  });
+
+} else {
+
+  // **********************
+  // *** Worker process ***
+  // **********************
+
+  if (process.env.clusterStartTime) {
+    process.clusterStartTime = new Date(parseInt(process.env.clusterStartTime, 10));
+  }
+
+  var RedisStore = require('socket.io/lib/stores/redis'),
+      redis = require('socket.io/node_modules/redis'),
+      wsPub = redis.createClient(),
+      wsSub = redis.createClient(),
+      wsClient = redis.createClient(),
+      app = require('express')(),
+      http = require('http'),
+      server = http.createServer(app),
+      io = require('socket.io').listen(server),
+      JWT = require('./util/token'),
+      User = require('./models/User');
 
 
-/* Redis auth */
-var redisPassword = process.env.REDIS_PASSWORD || undefined;
-wsPub.auth(redisPassword, function(error) { if (error) throw error; });
-wsSub.auth(redisPassword, function(error) { if (error) throw error; });
-wsClient.auth(redisPassword, function(error) { if (error) throw error; });
-
-/* Serve html page with express */
-app.get('/', function(req, res) {
-  res.sendfile(__dirname + '/views/index.html');
-});
-
-/* Serve html page with express */
-app.get('/2', function(req, res) {
-  res.sendfile(__dirname + '/views/index2.html');
-});
+  /* config */
+  var SECRET = process.env.SECRET || 'bb!onz3e2hc1l-192ug40g@ykf^3@e4rtl!t9(i)d7n#oeo^!r';
 
 
-/* Socket.io config for auth */
-io.configure(function() {
+  /* Redis auth */
+  var redisPassword = process.env.REDIS_PASSWORD || undefined;
+  wsPub.auth(redisPassword, function(error) { if (error) throw error; });
+  wsSub.auth(redisPassword, function(error) { if (error) throw error; });
+  wsClient.auth(redisPassword, function(error) { if (error) throw error; });
 
-  /* Redis store config */
-  io.set('store', new RedisStore({
-    redisPub: wsPub,
-    redisSub: wsSub,
-    redisClient: wsClient
-  }));
 
-  /* WebSocket Auth */
-  io.set('authorization', function(handshakeData, callback) {
-    var token = handshakeData.query.jwt,
-        user = new User(),
-        payload;
+  // /* handle redis errors */
+  wsPub.on('error', function(error) {
+    console.error('redis error:', error);
+  }).on('connect', function() {
+    console.log('redis connected');
+  });
 
-    /* make sure token is valid or else kick */
-    try {
-      payload = jwt.decode(token, config.secretKey);
-    } catch (exception) {
-      console.error(exception);
-      callback(null, false);
-    }
+  wsSub.on('error', function(error) {
+    console.error('redis error:', error);
+  }).on('connect', function() {
+    console.log('redis connected');
+  });
 
-    /* get the current users channels */
-    user.getChannels(payload.user_id)
-      .then(function(channels) {
-        userChannels = channels;
-        console.info('-> userChannels', userChannels);
+  wsClient.on('error', function(error) {
+    console.error('redis error:', error);
+  }).on('connect', function() {
+    console.log('redis connected');
+  });
+
+
+  /* Serve html page with express */
+  app.get('/', function(req, res) {
+    res.sendfile(__dirname + '/views/index.html');
+  });
+
+  /* Serve html page with express */
+  app.get('/2', function(req, res) {
+    res.sendfile(__dirname + '/views/index2.html');
+  });
+
+
+  /* Socket.io config for auth */
+  io.configure(function() {
+
+    /* Redis store config */
+    io.set('store', new RedisStore({
+      redisPub: wsPub,
+      redisSub: wsSub,
+      redisClient: wsClient
+    }));
+
+    /* WebSocket Auth */
+    io.set('authorization', function(handshakeData, callback) {
+      var token = handshakeData.query.jwt,
+          jwt = new JWT(SECRET);
+
+      /* make sure token is valid or else kick */
+      jwt.getPayload(token).then(function(payload){
         callback(null, true);
-      })
-      .catch(function(error) {
-        console.error('-> error getting channels', error);
+      }).catch(function(error) {
         callback(null, false);
       });
-  });
-});
 
 
-/* Connection event listener */
-io.sockets.on('connection', function(socket) {
-
-  /* Respond to subscribe message */
-  socket.on('subscribe', function(room) {
-
-    /* Validate room in userChannels */
-    if (userChannels && userChannels.indexOf(room) > -1) {
-      console.log('joining room:', room);
-      socket.join(room);
-      socket.in(room).emit('joinedRoom', room);
-
-    } else {
-      socket.leave(room);
-      socket.emit('roomAuth', 'Can\'t join room:' + room);
-    }
-
+    });
   });
 
-});
+
+  /* Connection event listener */
+  io.sockets.on('connection', function(socket) {
+
+    /* Respond to subscribe message */
+    socket.on('subscribe', function(room) {
+
+      var token = socket.handshake.query.jwt,
+          user = new User(),
+          jwt = new JWT(SECRET);
+
+      jwt.getPayload(token).then(function(payload) {
+        return payload.user_id;
+      })
+      .then(function(userId) {
+        return user.getChannels(userId);
+      })
+      .then(function(channels) {
+        /* Validate room in userChannels */
+        if (channels.indexOf(room) > -1) {
+          socket.join(room);
+          socket.in(room).emit('joinedRoom', room);
+
+        } else {
+          socket.leave(room);
+          socket.emit('roomAuth', 'Can\'t join room:' + room);
+        }
+      }).catch(function(error) {
+        console.error('-> error getting channels', error);
+      });
+
+    });
+
+  });
 
 
-/* Start server */
-var port = process.env.PORT || 3000;
-server.listen(port, function() {
-  console.log('Listening on port ' + port);
-});
+  /* Start server */
+  var port = process.env.PORT || 3000;
+  server.listen(port, function() {
+    console.log('Listening on port ' + port);
+  });
+
+  process.on('SIGINT', function() {
+    process.exit();
+  });
+
+}
