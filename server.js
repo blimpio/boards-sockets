@@ -60,7 +60,7 @@ if (cluster.isMaster) {
 
 
   /* config */
-  var SECRET = process.env.SECRET || 'bb!onz3e2hc1l-192ug40g@ykf^3@e4rtl!t9(i)d7n#oeo^!r';
+  var SECRET = process.env.SECRET_KEY || 'bb!onz3e2hc1l-192ug40g@ykf^3@e4rtl!t9(i)d7n#oeo^!r';
 
 
   /* Redis auth */
@@ -141,7 +141,7 @@ if (cluster.isMaster) {
     socket.on('subscribe', function(room) {
 
       var token = socket.handshake.query.jwt,
-          dbUrl = process.env.REDIS_URL || 'postgres://gcollazo:@localhost/boards',
+          dbUrl = process.env.DATABASE_URL || 'postgres://gcollazo:@localhost/boards',
           dbBackend = new PgBackend(dbUrl),
           user = new User(dbBackend),
           jwt = new JWT(SECRET);
