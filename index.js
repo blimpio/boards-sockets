@@ -43,10 +43,12 @@ if (cluster.isMaster) {
       wsPub = redis.createClient(),
       wsSub = redis.createClient(),
       wsClient = redis.createClient(),
+
       app = require('express')(),
       http = require('http'),
       server = http.createServer(app),
       io = require('socket.io').listen(server),
+
       JWT = require('./util/token'),
       User = require('./models/User');
 
