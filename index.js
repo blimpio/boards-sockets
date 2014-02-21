@@ -103,6 +103,12 @@ if (cluster.isMaster) {
   /* Socket.io config for auth */
   io.configure(function() {
 
+    io.set('log level', 1);
+    io.enable('browser client minification');
+    io.enable('browser client etag');
+    io.enable('browser client gzip');
+    io.set('transports', ['websocket', 'xhr-polling', 'jsonp-polling']);
+
     /* Redis store config */
     io.set('store', new RedisStore({
       redisPub: wsPub,
