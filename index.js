@@ -42,11 +42,12 @@ if (cluster.isMaster) {
     process.clusterStartTime = new Date(parseInt(process.env.clusterStartTime, 10));
   }
 
-  var RedisStore = require('socket.io/lib/stores/redis'),
+  var rtg = require("url").parse(process.env.REDISTOGO_URL || 'redis://:@localhost:6379/0'),
+      RedisStore = require('socket.io/lib/stores/redis'),
       redis = require('socket.io/node_modules/redis'),
-      wsPub = redis.createClient(),
-      wsSub = redis.createClient(),
-      wsClient = redis.createClient(),
+      wsPub = redis.createClient(rtg.port, rtg.hostname),
+      wsSub = redis.createClient(rtg.port, rtg.hostname),
+      wsClient = redis.createClient(rtg.port, rtg.hostname),
 
       app = require('express')(),
       http = require('http'),
@@ -62,7 +63,7 @@ if (cluster.isMaster) {
 
 
   /* Redis auth */
-  var redisPassword = process.env.REDIS_PASSWORD || undefined;
+  var redisPassword = rtg.auth.split(":")[1];
   wsPub.auth(redisPassword, function(error) { if (error) throw error; });
   wsSub.auth(redisPassword, function(error) { if (error) throw error; });
   wsClient.auth(redisPassword, function(error) { if (error) throw error; });
