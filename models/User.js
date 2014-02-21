@@ -1,11 +1,10 @@
 'use strict';
 
 var Model = require('./Model'),
-    RSVP = require('rsvp'),
-    PgBackend = require('../db/PgBackend'),
-    db = new PgBackend(process.env.REDIS_URL || 'postgres://gcollazo:@localhost/boards');
+    RSVP = require('rsvp');
 
-var User = function() {
+var User = function(dbBackend) {
+  this.db = dbBackend
   this.tableName = 'users_user';
 
   /* set arguments to User properties */
@@ -24,7 +23,7 @@ User.prototype.get = function(id) {
   var self = this;
   var promise = new RSVP.Promise(function(resolve, reject) {
 
-    db.get(this.tableName, id)
+    self.db.get(this.tableName, id)
       .then(function(result) {
 
         /* Set properties */
@@ -49,9 +48,10 @@ User.prototype.get = function(id) {
  * user id
  */
 User.prototype.getBoards = function(id) {
+  var self = this;
   var promise = new RSVP.Promise(function(resolve, reject) {
 
-    var query = db.sql
+    var query = self.db.sql
                 .select()
                 .field('boards_board.id')
                 .field('boards_board.name')
@@ -67,7 +67,7 @@ User.prototype.getBoards = function(id) {
                 .where('boards_boardcollaborator.user_id = ?', id)
                 .toString();
 
-    db.query(query)
+    self.db.query(query)
       .then(function(result) {
         resolve(result.rows);
       }, function(error) {
@@ -85,9 +85,10 @@ User.prototype.getBoards = function(id) {
  * user id
  */
 User.prototype.getAccounts = function(id) {
+  var self = this;
   var promise = new RSVP.Promise(function(resolve, reject) {
 
-    var query = db.sql
+    var query = self.db.sql
                 .select()
                 .field('accounts_account.id')
                 .field('accounts_account.name')
@@ -103,7 +104,7 @@ User.prototype.getAccounts = function(id) {
                 .where('accounts_accountcollaborator.user_id = ?', id)
                 .toString();
 
-    db.query(query)
+    self.db.query(query)
       .then(function(result) {
         resolve(result.rows);
       }, function(error) {

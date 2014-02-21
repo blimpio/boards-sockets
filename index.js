@@ -55,6 +55,7 @@ if (cluster.isMaster) {
       io = require('socket.io').listen(server),
 
       JWT = require('./util/token'),
+      PgBackend = require('./db/PgBackend'),
       User = require('./models/User');
 
 
@@ -140,7 +141,8 @@ if (cluster.isMaster) {
     socket.on('subscribe', function(room) {
 
       var token = socket.handshake.query.jwt,
-          user = new User(),
+          dbBackend = new PgBackend(process.env.REDIS_URL || 'postgres://gcollazo:@localhost/boards'),
+          user = new User(dbBackend),
           jwt = new JWT(SECRET);
 
       jwt.getPayload(token).then(function(payload) {
