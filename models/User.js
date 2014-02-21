@@ -1,6 +1,6 @@
 'use strict';
 
-var Model = require('./model'),
+var Model = require('./Model'),
     RSVP = require('rsvp'),
     PgBackend = require('../db/PgBackend'),
     db = new PgBackend(process.env.REDIS_URL || 'postgres://gcollazo:@localhost/boards');
