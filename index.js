@@ -64,7 +64,7 @@ if (cluster.isMaster) {
 
 
   /* Redis auth */
-  var redisPassword = rtg.auth.split(":")[1];
+  var redisPassword = rtg.auth.split(':')[1];
   wsPub.auth(redisPassword, function(error) { if (error) throw error; });
   wsSub.auth(redisPassword, function(error) { if (error) throw error; });
   wsClient.auth(redisPassword, function(error) { if (error) throw error; });
@@ -123,9 +123,9 @@ if (cluster.isMaster) {
           jwt = new JWT(SECRET);
 
       /* make sure token is valid or else kick */
-      jwt.getPayload(token).then(function(payload){
+      jwt.getPayload(token).then(function(){
         callback(null, true);
-      }).catch(function(error) {
+      }).catch(function() {
         callback(null, false);
       });
 
@@ -141,7 +141,8 @@ if (cluster.isMaster) {
     socket.on('subscribe', function(room) {
 
       var token = socket.handshake.query.jwt,
-          dbBackend = new PgBackend(process.env.REDIS_URL || 'postgres://gcollazo:@localhost/boards'),
+          dbUrl = process.env.REDIS_URL || 'postgres://gcollazo:@localhost/boards',
+          dbBackend = new PgBackend(dbUrl),
           user = new User(dbBackend),
           jwt = new JWT(SECRET);
 
