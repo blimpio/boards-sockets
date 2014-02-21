@@ -2,7 +2,7 @@
   "name": "boards-sockets",
   "version": "0.1.0",
   "description": "Socket.io for boards app",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": ""
   },
