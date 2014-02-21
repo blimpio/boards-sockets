@@ -22,16 +22,16 @@
             });
           });
 
-          socket.on('roomauthfail', function(data) {
-            console.error('roomauthfail:', data.room, data.message);
+          socket.on('roomAuth', function(data) {
+            console.error('roomAuth:', data);
           });
 
-          socket.on('userMessage', function(data) {
-            console.log('userMessage:', data);
+          socket.on('joinedRoom', function(data) {
+            console.log('joinedRoom:', data);
           });
 
-          socket.on('accountMessage', function(data) {
-            console.log('accountMessage:', data);
+          socket.on('message', function(data) {
+            console.log(data);
           });
         </script>
     </body>

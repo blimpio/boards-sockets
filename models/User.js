@@ -129,14 +129,7 @@ User.prototype.getChannels = function(id) {
 
   var promise = new RSVP.Promise(function(resolve, reject) {
 
-    self.getBoards(id)
-      .then(function(boards) {
-        boards.forEach(function(board) {
-          channels.push('b' + board.id);
-        });
-
-        return self.getAccounts(id);
-      })
+    self.getAccounts(id)
       .then(function(accounts) {
         accounts.forEach(function(account) {
           channels.push('a' + account.id);

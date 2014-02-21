@@ -5,7 +5,6 @@ var RedisStore = require('socket.io/lib/stores/redis'),
     wsPub = redis.createClient(),
     wsSub = redis.createClient(),
     wsClient = redis.createClient(),
-    backendSub = redis.createClient(),
     app = require('express')(),
     http = require('http'),
     server = http.createServer(app),
@@ -21,8 +20,6 @@ var redisPassword = process.env.REDIS_PASSWORD || undefined;
 wsPub.auth(redisPassword, function(error) { if (error) throw error; });
 wsSub.auth(redisPassword, function(error) { if (error) throw error; });
 wsClient.auth(redisPassword, function(error) { if (error) throw error; });
-backendSub.auth(redisPassword, function(error) { if (error) throw error; });
-
 
 /* Serve html page with express */
 app.get('/', function(req, res) {
@@ -77,33 +74,6 @@ io.configure(function() {
 /* Connection event listener */
 io.sockets.on('connection', function(socket) {
 
-  /* Backend redis messages */
-  backendSub.subscribe('user');
-  backendSub.subscribe('account');
-
-  backendSub.on('message', function(channel, message) {
-    var msg,
-        channelPrefix = channel.substring(0, 1);
-
-    try {
-      msg = JSON.parse(message);
-    } catch(error) {
-      msg = false;
-      console.error(error);
-    }
-
-    if (msg) {
-      var room = channelPrefix + msg.sender_id;
-      console.log('channel:', room, msg);
-
-      /* Send paylod to client */
-      var eventName = channel + 'Message';
-      socket.in(room).emit(eventName, msg);
-    }
-
-  });
-
-
   /* Respond to subscribe message */
   socket.on('subscribe', function(room) {
 
@@ -111,11 +81,11 @@ io.sockets.on('connection', function(socket) {
     if (userChannels && userChannels.indexOf(room) > -1) {
       console.log('joining room:', room);
       socket.join(room);
-      socket.in(room).emit('message', 'joined room: ' + room);
+      socket.in(room).emit('joinedRoom', room);
 
     } else {
-      socket.emit('roomauthfail',
-                  {room: room, message:'user can\'t join room'});
+      socket.leave(room);
+      socket.emit('roomAuth', 'Can\'t join room:' + room);
     }
 
   });
