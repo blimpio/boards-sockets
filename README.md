@@ -55,4 +55,4 @@ The following is an example payload.
 
 
 ##### `data`:
-The data field can only contain **valid JSON**.
+The data field can only contain a JSON object.
