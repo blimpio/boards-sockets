@@ -4,7 +4,15 @@
         <script>
           'use strict';
 
-          var token = 'eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJ1c2VyX2lkIjogMSwgImV4cCI6IDE0MDA3OTIyNDksICJ0b2tlbl92ZXJzaW9uIjogIjU1MGU4NDAwLWUyOWItNDFkNC1hNzE2LTQ0NjY1NTQ0MDAwMCJ9.RvGxxig2LQUSHAVO5I0IsnUkkBBUWGntzLPNECoqoHY';
+          var hostname = window.location.hostname;
+          var env = hostname === 'localhost' ? 'development':'production';
+          var token;
+
+          if (env === 'development') {
+            token = 'eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJ1c2VyX2lkIjogMSwgImV4cCI6IDE0MDEwMzcyMzMsICJ0b2tlbl92ZXJzaW9uIjogIjU1MGU4NDAwLWUyOWItNDFkNC1hNzE2LTQ0NjY1NTQ0MDAwMCJ9.rSpd1jf_LbdAua47Q7vC1J2jMr4VD0iJlgem08DtMa8';
+          } else {
+            token = 'eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJ1c2VyX2lkIjogMSwgImV4cCI6IDE0MDA3OTIyNDksICJ0b2tlbl92ZXJzaW9uIjogIjU1MGU4NDAwLWUyOWItNDFkNC1hNzE2LTQ0NjY1NTQ0MDAwMCJ9.RvGxxig2LQUSHAVO5I0IsnUkkBBUWGntzLPNECoqoHY';
+          }
 
           var socket = io.connect('/', {query: 'jwt=' + token});
 
