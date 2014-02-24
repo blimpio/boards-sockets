@@ -46,7 +46,7 @@ The following is an example payload.
 
 
 ##### `data_type`:
-`user`, `account`, `board`, `stack`, `comment`, `notification`, `user_setting`, `account_setting`.
+`user`, `account`, `board`, `stack`, `card`, `comment`, `notification`, `user_setting`, `account_setting`.
 
 
 
