@@ -22,9 +22,9 @@ RedisClient.prototype.createClient = function() {
   r.auth(this.password, function(error) { if (error) throw error; });
 
   r.on('error', function(error) {
-    console.error('redis error:' + error);
+    console.error('redis error: ' + error);
   }).on('connect', function() {
-    console.info('redis connect');
+    console.info('redis connect: ' + this.host + ':' + this.port);
   });
 
   return r;

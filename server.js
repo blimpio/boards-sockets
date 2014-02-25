@@ -50,6 +50,7 @@ if (cluster.isMaster) {
       redisClient = require('./app/RedisClient'),
       redis = new redisClient(REDIS_URL),
       redisStoreClient = redis.createStoreClient(),
+
       RedisStore = require('socket.io/lib/stores/redis'),
 
       app = require('express')(),
