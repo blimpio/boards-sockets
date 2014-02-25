@@ -15,11 +15,11 @@
   "dependencies": {
     "socket.io": "~0.9.16",
     "express": "~3.4.8",
-    "jwt-simple": "~0.1.0",
     "pg": "~2.11.1",
     "squel": "~2.0.0",
     "rsvp": "~3.0.6",
-    "redis": "~0.10.1"
+    "redis": "~0.10.1",
+    "socketio-jwt": "~2.0.1"
   },
   "devDependencies": {
     "mocha": "~1.17.1",

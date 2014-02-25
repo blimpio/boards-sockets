@@ -14,7 +14,7 @@
             token = 'eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJ1c2VyX2lkIjogMSwgImV4cCI6IDE0MDA3OTIyNDksICJ0b2tlbl92ZXJzaW9uIjogIjU1MGU4NDAwLWUyOWItNDFkNC1hNzE2LTQ0NjY1NTQ0MDAwMCJ9.RvGxxig2LQUSHAVO5I0IsnUkkBBUWGntzLPNECoqoHY';
           }
 
-          var socket = io.connect('/', {query: 'jwt=' + token});
+          var socket = io.connect('/', {query: 'token=' + token});
 
           socket.on('error', function(reason) {
             console.error('unable to connect websocket server:', reason);

@@ -57,7 +57,7 @@ if (cluster.isMaster) {
       server = http.createServer(app),
       io = require('socket.io').listen(server),
 
-      ConnectionAuth = require('./app/ConnectionAuth'),
+      socketioJwt = require('socketio-jwt'),
       RoomAuth = require('./app/RoomAuth');
 
   /* Serve html page with express */
@@ -84,21 +84,26 @@ if (cluster.isMaster) {
     io.set('store', new RedisStore(redisStoreClient));
 
     /* WebSocket Auth */
-    io.set('authorization', function(handshakeData, callback) {
-      ConnectionAuth.authorize(SECRET, handshakeData, callback);
-    });
+    io.set('authorization', socketioJwt.authorize({
+      secret: SECRET,
+      handshake: true
+    }));
 
   });
 
 
   /* Connection event listener */
   io.sockets.on('connection', function(socket) {
+    console.log(socket.handshake.decoded_token.user_id, 'user_id connected');
 
     /* Respond to subscribe message */
-    socket.on('subscribe', function(room) {
-      var token = socket.handshake.query.jwt;
-      RoomAuth.authorize(socket, room, token, SECRET);
-    });
+    // socket.on('subscribe', function(room) {
+    //   var token = socket.handshake.query.jwt;
+    //   RoomAuth.authorize(socket, room, token, SECRET);
+    // });
+    socket.on('subscribe', RoomAuth.authorize({
+      decodedToken: socket.handshake.decoded_token
+    }));
 
   });
 

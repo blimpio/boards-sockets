@@ -2,37 +2,33 @@
 
 var devConfig = require('../devConfig'),
     PG_URL = process.env.DATABASE_URL || devConfig.PG_URL,
-    JWT = require('../lib/token'),
     PgBackend = require('../db/PgBackend'),
     User = require('../models/User');
 
 
 var RoomAuth = {
-  authorize: function(socket, room, token, secret) {
+  authorize: function(options) {
+    return function(room) {
+      var self = this,
+          dbBackend = new PgBackend(PG_URL),
+          user = new User(dbBackend),
+          userID = options.decodedToken.user_id;
 
-    var jwt = new JWT(secret),
-        dbBackend = new PgBackend(PG_URL),
-        user = new User(dbBackend);
+      user.getChannels(userID)
+        .then(function(channels) {
+          if (channels.indexOf(room) > -1) {
+            self.join(room);
+            self.in(room).emit('joinedRoom', room);
 
-    jwt.getPayload(token).then(function(payload) {
-      return payload.user_id;
-    })
-    .then(function(userId) {
-      return user.getChannels(userId);
-    })
-    .then(function(channels) {
-      /* Validate room in userChannels */
-      if (channels.indexOf(room) > -1) {
-        socket.join(room);
-        socket.in(room).emit('joinedRoom', room);
-
-      } else {
-        socket.leave(room);
-        socket.emit('roomAuth', 'Can\'t join room:' + room);
-      }
-    }).catch(function(error) {
-      console.error('-> error getting channels', error);
-    });
+          } else {
+            self.leave(room);
+            self.emit('roomAuth', 'Can\'t join room:' + room);
+          }
+        })
+        .catch(function(error) {
+          console.error('-> error getting channels', error);
+        });
+    };
 
   }
 };
