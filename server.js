@@ -42,7 +42,7 @@ if (cluster.isMaster) {
     process.clusterStartTime = new Date(parseInt(process.env.clusterStartTime, 10));
   }
 
-  var rtg = require("url").parse(process.env.REDIS_URL || 'redis://:@localhost:6379/0'),
+  var rtg = require('url').parse(process.env.REDIS_URL || 'redis://:@localhost:6379/0'),
       RedisStore = require('socket.io/lib/stores/redis'),
       redis = require('socket.io/node_modules/redis'),
       wsPub = redis.createClient(rtg.port, rtg.hostname),
