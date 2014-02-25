@@ -97,10 +97,6 @@ if (cluster.isMaster) {
     console.log(socket.handshake.decoded_token.user_id, 'user_id connected');
 
     /* Respond to subscribe message */
-    // socket.on('subscribe', function(room) {
-    //   var token = socket.handshake.query.jwt;
-    //   RoomAuth.authorize(socket, room, token, SECRET);
-    // });
     socket.on('subscribe', RoomAuth.authorize({
       decodedToken: socket.handshake.decoded_token
     }));
