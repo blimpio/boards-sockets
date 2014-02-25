@@ -95,7 +95,6 @@ User.prototype.getAccounts = function(id) {
                 .field('accounts_account.date_created')
                 .field('accounts_account.date_modified')
                 .field('accounts_account.slug')
-                .field('accounts_account.image_url')
                 .field('accounts_account.allow_signup')
                 .field('accounts_accountcollaborator.is_owner')
                 .from('accounts_accountcollaborator')
