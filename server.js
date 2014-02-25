@@ -141,7 +141,7 @@ if (cluster.isMaster) {
     socket.on('subscribe', function(room) {
 
       var token = socket.handshake.query.jwt,
-          dbUrl = process.env.DATABASE_URL || 'postgres://gcollazo:@localhost/boards',
+          dbUrl = process.env.DATABASE_URL || 'postgres://'+ process.env.USER +':@localhost/boards',
           dbBackend = new PgBackend(dbUrl),
           user = new User(dbBackend),
           jwt = new JWT(SECRET);
