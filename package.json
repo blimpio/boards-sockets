@@ -2,18 +2,28 @@
   "name": "boards-sockets",
   "version": "0.1.0",
   "description": "Socket.io for boards app",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/GetBlimp/boards-sockets.git"
+  },
   "main": "server.js",
   "scripts": {
-    "test": ""
+    "test": "./node_modules/.bin/mocha"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Giovanni Collazo - Blimp LLC",
+  "license": "MIT",
   "dependencies": {
     "socket.io": "~0.9.16",
     "express": "~3.4.8",
     "jwt-simple": "~0.1.0",
     "pg": "~2.11.1",
     "squel": "~2.0.0",
-    "rsvp": "~3.0.6"
+    "rsvp": "~3.0.6",
+    "redis": "~0.10.1"
+  },
+  "devDependencies": {
+    "mocha": "~1.17.1",
+    "socket.io-client": "~0.9.16",
+    "sinon": "~1.8.2"
   }
 }

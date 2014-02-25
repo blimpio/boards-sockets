@@ -39,56 +39,26 @@ if (cluster.isMaster) {
   // **********************
 
   if (process.env.clusterStartTime) {
-    process.clusterStartTime = new Date(parseInt(process.env.clusterStartTime, 10));
+    var time = parseInt(process.env.clusterStartTime, 10);
+    process.clusterStartTime = new Date(time);
   }
 
-  var rtg = require('url').parse(process.env.REDIS_URL || 'redis://:@localhost:6379/0'),
+  var devConfig = require('./devConfig'),
+      REDIS_URL = process.env.REDIS_URL || devConfig.REDIS_URL,
+      SECRET = process.env.SECRET_KEY || devConfig.SECRET,
+
+      redisClient = require('./lib/RedisClient'),
+      redis = new redisClient(REDIS_URL),
+      redisStoreClient = redis.createStoreClient(),
       RedisStore = require('socket.io/lib/stores/redis'),
-      redis = require('socket.io/node_modules/redis'),
-      wsPub = redis.createClient(rtg.port, rtg.hostname),
-      wsSub = redis.createClient(rtg.port, rtg.hostname),
-      wsClient = redis.createClient(rtg.port, rtg.hostname),
 
       app = require('express')(),
       http = require('http'),
       server = http.createServer(app),
       io = require('socket.io').listen(server),
 
-      JWT = require('./util/token'),
-      PgBackend = require('./db/PgBackend'),
-      User = require('./models/User');
-
-
-  /* config */
-  var SECRET = process.env.SECRET_KEY || 'bb!onz3e2hc1l-192ug40g@ykf^3@e4rtl!t9(i)d7n#oeo^!r';
-
-
-  /* Redis auth */
-  var redisPassword = rtg.auth.split(':')[1];
-  wsPub.auth(redisPassword, function(error) { if (error) throw error; });
-  wsSub.auth(redisPassword, function(error) { if (error) throw error; });
-  wsClient.auth(redisPassword, function(error) { if (error) throw error; });
-
-
-  // /* handle redis errors */
-  wsPub.on('error', function(error) {
-    console.error('redis error:', error);
-  }).on('connect', function() {
-    console.info('redis connected');
-  });
-
-  wsSub.on('error', function(error) {
-    console.error('redis error:', error);
-  }).on('connect', function() {
-    console.info('redis connected');
-  });
-
-  wsClient.on('error', function(error) {
-    console.error('redis error:', error);
-  }).on('connect', function() {
-    console.info('redis connected');
-  });
-
+      ConnectionAuth = require('./app/ConnectionAuth'),
+      RoomAuth = require('./app/RoomAuth');
 
   /* Serve html page with express */
   app.get('/', function(req, res) {
@@ -103,7 +73,7 @@ if (cluster.isMaster) {
 
   /* Socket.io config for auth */
   io.configure(function() {
-
+    /* basic config */
     io.set('log level', 1);
     io.enable('browser client minification');
     io.enable('browser client etag');
@@ -111,26 +81,13 @@ if (cluster.isMaster) {
     io.set('transports', ['websocket', 'xhr-polling', 'jsonp-polling']);
 
     /* Redis store config */
-    io.set('store', new RedisStore({
-      redisPub: wsPub,
-      redisSub: wsSub,
-      redisClient: wsClient
-    }));
+    io.set('store', new RedisStore(redisStoreClient));
 
     /* WebSocket Auth */
     io.set('authorization', function(handshakeData, callback) {
-      var token = handshakeData.query.jwt,
-          jwt = new JWT(SECRET);
-
-      /* make sure token is valid or else kick */
-      jwt.getPayload(token).then(function(){
-        callback(null, true);
-      }).catch(function() {
-        callback(null, false);
-      });
-
-
+      ConnectionAuth.authorize(SECRET, handshakeData, callback);
     });
+
   });
 
 
@@ -139,40 +96,15 @@ if (cluster.isMaster) {
 
     /* Respond to subscribe message */
     socket.on('subscribe', function(room) {
-
-      var token = socket.handshake.query.jwt,
-          dbUrl = process.env.DATABASE_URL || 'postgres://'+ process.env.USER +':@localhost/boards',
-          dbBackend = new PgBackend(dbUrl),
-          user = new User(dbBackend),
-          jwt = new JWT(SECRET);
-
-      jwt.getPayload(token).then(function(payload) {
-        return payload.user_id;
-      })
-      .then(function(userId) {
-        return user.getChannels(userId);
-      })
-      .then(function(channels) {
-        /* Validate room in userChannels */
-        if (channels.indexOf(room) > -1) {
-          socket.join(room);
-          socket.in(room).emit('joinedRoom', room);
-
-        } else {
-          socket.leave(room);
-          socket.emit('roomAuth', 'Can\'t join room:' + room);
-        }
-      }).catch(function(error) {
-        console.error('-> error getting channels', error);
-      });
-
+      var token = socket.handshake.query.jwt;
+      RoomAuth.authorize(socket, room, token, SECRET);
     });
 
   });
 
 
   /* Start server */
-  var port = process.env.PORT || 3000;
+  var port = process.env.PORT || devConfig.PORT;
   server.listen(port, function() {
     console.info('Listening on port ' + port);
   });
