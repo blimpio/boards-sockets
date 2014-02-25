@@ -47,7 +47,7 @@ if (cluster.isMaster) {
       REDIS_URL = process.env.REDIS_URL || devConfig.REDIS_URL,
       SECRET = process.env.SECRET_KEY || devConfig.SECRET,
 
-      redisClient = require('./lib/RedisClient'),
+      redisClient = require('./app/RedisClient'),
       redis = new redisClient(REDIS_URL),
       redisStoreClient = redis.createStoreClient(),
       RedisStore = require('socket.io/lib/stores/redis'),
