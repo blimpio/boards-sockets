@@ -65,7 +65,7 @@ if (cluster.isMaster) {
       socketioJwt = require('socketio-jwt'),
       RoomAuth = require('./app/RoomAuth');
 
-
+  console.log('-> REDIS_URL: ' + REDIS_URL);
   if (ENVIRONMENT === 'development') {
     /* Serve html page with express */
     app.get('/', function(req, res) {
