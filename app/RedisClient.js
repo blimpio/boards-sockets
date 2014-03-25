@@ -48,6 +48,7 @@ RedisClient.prototype.makeClient = function() {
 
 RedisClient.prototype.createStoreClient = function() {
   var store = {
+    redis: redis,
     redisPub: this.makeClient(),
     redisSub: this.makeClient(),
     redisClient: this.makeClient()
