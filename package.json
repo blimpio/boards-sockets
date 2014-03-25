@@ -10,6 +10,9 @@
   "scripts": {
     "test": "./node_modules/.bin/mocha"
   },
+  "engines": {
+    "node": "0.10.x"
+  },
   "author": "Giovanni Collazo - Blimp LLC",
   "license": "MIT",
   "dependencies": {
