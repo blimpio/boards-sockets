@@ -1,44 +1,63 @@
 'use strict';
 
+
+var dotenv = require('dotenv');
+dotenv.load();
+
+
 var redis = require('redis'),
     parse = require('url').parse;
 
+
 var RedisClient = function(connectionURL) {
-  this.connectionURL = connectionURL;
-  this.options = this.parseURL(connectionURL);
+  var options = this.parseURL(connectionURL);
+  this.hostname = options.hostname;
+  this.port = options.port;
+  this.username = options.username;
+  this.password = options.password;
 };
 
 
 RedisClient.prototype.parseURL = function(url) {
-  var _url = parse(url);
-  this.port = _url.port;
-  this.host = _url.hostname;
-  this.password = _url.auth.split(':')[1];
+  var _url = parse(url),
+      auth = _url.auth.split(':');
+
+  return {
+    hostname: _url.hostname,
+    port: _url.port,
+    username: auth[0],
+    password: auth[1]
+  };
 };
 
 
-RedisClient.prototype.createClient = function() {
-  var r = redis.createClient(this.port, this.host);
-  r.auth(this.password, function(error) { if (error) throw error; });
+RedisClient.prototype.makeClient = function() {
+  var r = redis.createClient(this.port, this.hostname);
 
-  r.on('error', function(error) {
-    console.error('redis error: ' + error);
-  }).on('connect', function() {
-    console.info('redis connect: ' + this.host + ':' + this.port);
+  return r.auth(this.password, function(error) {
+    if (error) console.error(error);
+
+    r.on('error', function(error) {
+      console.error('redis error: ' + error);
+    }).on('connect', function() {
+      console.info('redis connect: ' + this.host + ':' + this.port);
+    });
+
+    return r;
+
   });
-
-  return r;
 };
 
 
 RedisClient.prototype.createStoreClient = function() {
   var store = {
-    redisPub: this.createClient(),
-    redisSub: this.createClient(),
-    redisClient: this.createClient()
+    redisPub: this.makeClient(),
+    redisSub: this.makeClient(),
+    redisClient: this.makeClient()
   };
 
   return store;
 };
 
 module.exports = RedisClient;
+

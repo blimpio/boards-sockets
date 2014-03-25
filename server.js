@@ -1,5 +1,10 @@
 'use strict';
 
+var dotenv = require('dotenv');
+dotenv.load();
+
+var ENVIRONMENT = process.env.NODE_ENV || 'development';
+
 var cluster = require('cluster');
 
 var numCPUs = require('os').cpus().length,
@@ -43,9 +48,8 @@ if (cluster.isMaster) {
     process.clusterStartTime = new Date(time);
   }
 
-  var devConfig = require('./devConfig'),
-      REDIS_URL = process.env.REDIS_URL || devConfig.REDIS_URL,
-      SECRET = process.env.SECRET_KEY || devConfig.SECRET,
+  var REDIS_URL = process.env.REDIS_URL,
+      SECRET = process.env.SECRET_KEY,
 
       redisClient = require('./app/RedisClient'),
       redis = new redisClient(REDIS_URL),
@@ -61,16 +65,18 @@ if (cluster.isMaster) {
       socketioJwt = require('socketio-jwt'),
       RoomAuth = require('./app/RoomAuth');
 
-  /* Serve html page with express */
-  app.get('/', function(req, res) {
-    res.sendfile(__dirname + '/views/index.html');
-  });
 
-  /* Serve html page with express */
-  app.get('/2', function(req, res) {
-    res.sendfile(__dirname + '/views/index2.html');
-  });
+  if (ENVIRONMENT === 'development') {
+    /* Serve html page with express */
+    app.get('/', function(req, res) {
+      res.sendfile(__dirname + '/views/index.html');
+    });
 
+    /* Serve html page with express */
+    app.get('/2', function(req, res) {
+      res.sendfile(__dirname + '/views/index2.html');
+    });
+  }
 
   /* Socket.io config for auth */
   io.configure(function() {
@@ -106,7 +112,7 @@ if (cluster.isMaster) {
 
 
   /* Start server */
-  var port = process.env.PORT || devConfig.PORT;
+  var port = process.env.PORT || 3000;
   server.listen(port, function() {
     console.info('Listening on port ' + port);
   });

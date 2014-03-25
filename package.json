@@ -19,7 +19,8 @@
     "squel": "~2.0.0",
     "rsvp": "~3.0.6",
     "redis": "~0.10.1",
-    "socketio-jwt": "~2.0.1"
+    "socketio-jwt": "~2.0.1",
+    "dotenv": "~0.2.5"
   },
   "devDependencies": {
     "mocha": "~1.17.1",

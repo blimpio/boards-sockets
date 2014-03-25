@@ -4,7 +4,7 @@ var Model = require('./Model'),
     RSVP = require('rsvp');
 
 var User = function(dbBackend) {
-  this.db = dbBackend
+  this.db = dbBackend;
   this.tableName = 'users_user';
 
   /* set arguments to User properties */

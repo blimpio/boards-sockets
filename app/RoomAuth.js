@@ -1,7 +1,6 @@
 'use strict';
 
-var devConfig = require('../devConfig'),
-    PG_URL = process.env.DATABASE_URL || devConfig.PG_URL,
+var PG_URL = process.env.DATABASE_URL,
     PgBackend = require('../db/PgBackend'),
     User = require('../models/User');
 

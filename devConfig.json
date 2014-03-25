@@ -1,6 +1,0 @@
-{
-    "PORT": 3000,
-    "SECRET": "bb!onz3e2hc1l-192ug40g@ykf^3@e4rtl!t9(i)d7n#oeo^!r",
-    "REDIS_URL": "redis://:@localhost:6379/0",
-    "PG_URL": "postgres://gcollazo:@localhost/boards"
-}
