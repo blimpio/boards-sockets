@@ -28,25 +28,21 @@ RedisClient.prototype.parseURL = function(url) {
 
 
 RedisClient.prototype.makeClient = function() {
-  console.log('--> PARAMS: ' + this.port, this.hostname);
   var r = redis.createClient(this.port, this.hostname);
+  r.auth(this.password, function(error) { if (error) console.error(error); });
 
-  r.auth(this.password, function(error) {
-    if (error) console.error(error);
-
-    r.on('error', function(error) {
-      console.error('redis error: ' + error);
-    }).on('connect', function() {
-      console.info('redis connect: ' + this.host + ':' + this.port);
-    });
-
-    return r;
-
+  r.on('error', function(error) {
+    console.error('redis error: ' + error);
+  }).on('connect', function() {
+    console.info('redis connect: ' + this.host + ':' + this.port);
   });
+
+  return r;
 };
 
 
 RedisClient.prototype.createStoreClient = function() {
+
   var store = {
     redis: redis,
     redisPub: this.makeClient(),

@@ -61,6 +61,8 @@ if (cluster.isMaster) {
 
 
   var redisClient = require('./app/RedisClient'),
+      redis = new redisClient(REDIS_URL),
+      redisStoreClient = redis.createStoreClient(),
       RedisStore = require('socket.io/lib/stores/redis');
 
 
@@ -87,9 +89,6 @@ if (cluster.isMaster) {
     io.set('transports', ['websocket', 'xhr-polling', 'jsonp-polling']);
 
     /* Redis store config */
-    console.log('--> REDIS_URL: ' + REDIS_URL);
-    var redis = new redisClient(REDIS_URL),
-        redisStoreClient = redis.createStoreClient();
     io.set('store', new RedisStore(redisStoreClient));
 
     /* WebSocket Auth */
