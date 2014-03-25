@@ -87,6 +87,7 @@ if (cluster.isMaster) {
     io.set('transports', ['websocket', 'xhr-polling', 'jsonp-polling']);
 
     /* Redis store config */
+    console.log('--> REDIS_URL: ' + REDIS_URL);
     var redis = new redisClient(REDIS_URL),
         redisStoreClient = redis.createStoreClient();
     io.set('store', new RedisStore(redisStoreClient));

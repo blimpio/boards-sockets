@@ -28,6 +28,7 @@ RedisClient.prototype.parseURL = function(url) {
 
 
 RedisClient.prototype.makeClient = function() {
+  console.log('--> PARAMS: ' + this.port, this.hostname);
   var r = redis.createClient(this.port, this.hostname);
 
   r.auth(this.password, function(error) {
