@@ -51,12 +51,6 @@ if (cluster.isMaster) {
   var REDIS_URL = process.env.REDIS_URL,
       SECRET = process.env.SECRET_KEY,
 
-      redisClient = require('./app/RedisClient'),
-      redis = new redisClient(REDIS_URL),
-      redisStoreClient = redis.createStoreClient(),
-
-      RedisStore = require('socket.io/lib/stores/redis'),
-
       app = require('express')(),
       http = require('http'),
       server = http.createServer(app),
@@ -65,7 +59,12 @@ if (cluster.isMaster) {
       socketioJwt = require('socketio-jwt'),
       RoomAuth = require('./app/RoomAuth');
 
-  console.log('-> REDIS_URL: ' + REDIS_URL);
+
+  var redisClient = require('./app/RedisClient'),
+      RedisStore = require('socket.io/lib/stores/redis');
+
+
+
   if (ENVIRONMENT === 'development') {
     /* Serve html page with express */
     app.get('/', function(req, res) {
@@ -88,6 +87,8 @@ if (cluster.isMaster) {
     io.set('transports', ['websocket', 'xhr-polling', 'jsonp-polling']);
 
     /* Redis store config */
+    var redis = new redisClient(REDIS_URL),
+        redisStoreClient = redis.createStoreClient();
     io.set('store', new RedisStore(redisStoreClient));
 
     /* WebSocket Auth */
